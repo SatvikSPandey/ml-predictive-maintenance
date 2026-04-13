@@ -2,7 +2,7 @@
 
 An end-to-end machine learning pipeline that predicts CNC machine failures from industrial sensor data. Built to demonstrate production-grade ML engineering — from raw data to a live REST API and interactive demo.
 
-**Live Demo:** [Streamlit App](https://your-streamlit-url.streamlit.app) &nbsp;|&nbsp; **Live API:** [FastAPI on Render](https://your-render-url.onrender.com/docs)
+**Live Demo:** [Streamlit App](https://ml-predictive-maintenance-satvik.streamlit.app) &nbsp;|&nbsp; **Live API:** [FastAPI on Render](https://ml-predictive-maintenance-1mum.onrender.com/docs)
 
 ---
 
