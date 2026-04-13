@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 # ── API URL ───────────────────────────────────────────────────
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://ml-predictive-maintenance-1mum.onrender.com"
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
