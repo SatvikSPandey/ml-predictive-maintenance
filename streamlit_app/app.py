@@ -116,7 +116,7 @@ if predict_clicked:
     }
 
     try:
-        response = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
+        response = requests.post(f"{API_URL}/predict", json=payload, timeout=60)
 
         if response.status_code == 200:
             result = response.json()
