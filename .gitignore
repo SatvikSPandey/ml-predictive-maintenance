@@ -8,3 +8,4 @@ __pycache__/
 data/raw/ai4i2020.zip
 archive.zip
 data/raw/*.csv
+important/

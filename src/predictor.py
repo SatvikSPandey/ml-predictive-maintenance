@@ -72,15 +72,13 @@ def preprocess_input(input_data: dict, scaler, feature_names: list) -> pd.DataFr
     return df
 
 
-def predict(input_data: dict) -> dict:
+def predict_local(input_data: dict) -> dict:
     """
-    Main prediction function. Takes raw sensor input, preprocesses it,
-    runs the model, and returns a structured result.
+    Runs inference using the local joblib model.
+    This is the fallback path when SageMaker is not available.
     """
     model, scaler, feature_names = load_artifacts()
-
     X = preprocess_input(input_data, scaler, feature_names)
-
     prediction = int(model.predict(X)[0])
     failure_prob = float(model.predict_proba(X)[0][1])
 
@@ -89,4 +87,29 @@ def predict(input_data: dict) -> dict:
         "failure_probability": round(failure_prob, 4),
         "result": "FAILURE" if prediction == 1 else "NO FAILURE",
         "confidence": round(failure_prob if prediction == 1 else 1 - failure_prob, 4),
+        "inference_backend": "local",
     }
+
+
+def predict(input_data: dict) -> dict:
+    """
+    Main prediction function with graceful SageMaker fallback.
+
+    Priority:
+    1. SageMaker endpoint — if SAGEMAKER_ENDPOINT_NAME is set and endpoint is live
+    2. Local joblib model — fallback when SageMaker is not available
+
+    This pattern means the same codebase works in both environments:
+    - Local development: uses joblib automatically
+    - Production with SageMaker: uses endpoint automatically
+    - Production without SageMaker: falls back to joblib gracefully
+    """
+    try:
+        from src.sagemaker_predictor import is_sagemaker_available, predict_sagemaker
+        if is_sagemaker_available():
+            print("Using SageMaker endpoint for inference.")
+            return predict_sagemaker(input_data)
+    except Exception as e:
+        print(f"SageMaker unavailable, falling back to local model. Reason: {e}")
+
+    return predict_local(input_data)
