@@ -183,6 +183,69 @@ streamlit run streamlit_app/app.py
 
 ---
 
+---
+
+## ☁️ AWS SageMaker Integration
+
+This project includes a production-ready SageMaker integration with graceful fallback to the local joblib model.
+
+### Architecture
+
+POST /predict (FastAPI)
+│
+▼
+src/predictor.py
+│
+├── SAGEMAKER_ENDPOINT_NAME set + endpoint InService?
+│       YES → src/sagemaker_predictor.py → SageMaker Endpoint
+│
+└── NO → predict_local() → models/best_model.pkl (joblib)
+
+### Key Files
+
+- `src/sagemaker_trainer.py` — Full SageMaker training and deployment workflow using AWS built-in XGBoost container
+- `src/sagemaker_predictor.py` — SageMaker endpoint inference client with availability check
+- `src/predictor.py` — Unified prediction interface with automatic SageMaker/local routing
+- `notebooks/04_sagemaker_deployment.ipynb` — Complete SageMaker deployment documentation
+
+### To Deploy on SageMaker
+
+**Prerequisites:**
+1. AWS credentials configured: `aws configure`
+2. IAM user with `AmazonSageMakerFullAccess` permissions
+3. Create S3 bucket: `ml-predictive-maintenance-satvik`
+4. Create SageMaker execution role in IAM
+
+**Steps:**
+```bash
+# Set environment variables
+export SAGEMAKER_ROLE_ARN=arn:aws:iam::<account-id>:role/SageMakerExecutionRole
+
+# Run training job and deploy endpoint (~$0.01 for training, ~$0.115/hr for endpoint)
+python src/sagemaker_trainer.py
+
+# Set endpoint name (printed after deployment)
+export SAGEMAKER_ENDPOINT_NAME=<endpoint-name>
+
+# FastAPI automatically routes to SageMaker — no code changes needed
+uvicorn api.main:app --reload
+```
+
+**Important:** Delete the endpoint after testing to avoid charges:
+```python
+from src.sagemaker_trainer import delete_endpoint
+delete_endpoint("<endpoint-name>")
+```
+
+### Fallback Behavior
+
+The system works in three modes automatically:
+- **Local development** — no AWS config needed, uses joblib
+- **Production with SageMaker** — set `SAGEMAKER_ENDPOINT_NAME`, routes automatically
+- **Production without SageMaker** — falls back to joblib gracefully
+
+
+
 ## 👤 Author
 
 **Satvik Pandey** — AI Engineer / Python Developer
